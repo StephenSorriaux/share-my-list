@@ -1,0 +1,72 @@
+{% extends "public/base.html" %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col col-lg-8 offset-lg-2 col-sm-12 col-md-12">
+            <h1>{% if list.owner|striptags != current_user|striptags %}Liste de {{ list.owner }}{% else %}Ma liste{% endif%}</h1>
+            {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+            {% if list.choice_set.all|length > 0 %}
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                        <th scope="col">Cadeau</th>
+                        <th scope="col">Lien</th>
+                        <th scope="col">Prix</th>
+                        <th scope="col">Acheté ?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for choice in list.choice_set.all %}
+                        <tr>
+                        <td>{{ choice.article_text }}</td>
+                        <td>{% if choice.link_text|striptags != '' %}<a href="{{ choice.link_text }}">Lien</a>{% else %}-{% endif %}</td>
+                        <td>{{ choice.price }}€</td>
+                        <td>{% if list.owner|striptags != current_user|striptags %}{% if choice.is_bought %}Oui{% else %}Non{% endif %}{% if choice.is_bought %}, par {{ choice.is_bought_by}} {% if choice.is_bought_by|striptags == current_user|striptags%}<a class="btn btn-danger btn-sm" href="{% url 'lists:make_available' list.id choice.id %}" role="button">Annuler</a>{% endif %}{% endif %}{% else %}Tu verras à Noël !{% endif %}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    <p><strong>Aucun cadeau dans cette liste</strong></p>
+                {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col col-lg-8 offset-lg-2 col-sm-12 col-md-12">
+            {% if list.owner|striptags != current_user|striptags %}
+            <h3>Je viens d'acheter un des cadeaux... (ou similaire)</h3>
+                <form action="{% url 'lists:update' list.id %}" method="post">
+                {% csrf_token %}
+                {% for choice in list.choice_set.all %}
+                    {% if not choice.is_bought%}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
+                        <label class="form-check-label" for="choice{{ forloop.counter }}">{{ choice.article_text }}</label><br>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">C'est pris !</button>
+                </form>
+            {% else %}
+            <h3>Ajouter un nouveau cadeau</h3>
+                <form action="{% url 'lists:add' list.id %}" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name">Nom du cadeau</label>
+                    <input class="form-control" type="text" name="name" id="name" value="" placeholder="Exemple : Jeux video PS4 GTAV"><br>
+                </div>
+                <div class="form-group">
+                    <label for="link">Lien pour acheter le cadeau</label>
+                    <input class="form-control" type="url" name="link" id="link" value="" placeholder="Exemple : http://www.example.com/"><br>
+                </div>
+                <div class="form-group">
+                    <label for="price">Prix du cadeau</label>
+                    <input class="form-control" type="number" name="price" id="price" value="0"><br>
+                </div>
+                <button type="submit" class="btn btn-primary">Ajouter</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>    
+</div>
+{% endblock %}

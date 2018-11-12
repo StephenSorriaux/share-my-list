@@ -1,0 +1,35 @@
+{% extends "public/base.html" %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+                <div class="jumbotron d-flex align-items-center">
+                    <div class="container">
+                        <h1 class="display-4">Joyeux Noël !</h1>
+                        <p class="lead">Un site pour gérer nos listes de Noël... car il n'y a pas que les petits qui peuvent faire leur liste.</p>
+                        <hr class="my-4">
+                        <p>Pas encore de liste ? N'attends pas et clique juste dessous.</p>
+                        <p class="lead">
+                            <a class="btn btn-primary btn-lg" href="{% url 'lists:create' %}" role="button">Créer ma liste</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-lg-4 offset-lg-4 col-sm-12 col-md-12">
+                {% if all_lists %}
+                <h2>Listes en cours <span class="badge badge-pill badge-primary">{{ all_lists|length }}</span></h2>
+                <div class="list-group">
+                    {% for list in all_lists %}
+                    <a href="{% url 'lists:detail' list.id %}" class="list-group-item list-group-item-action">{% if list.owner|striptags != current_user|striptags %}Liste de {{ list.owner }}{% else %}<strong>Ma liste<strong>{% endif %} ({{ list.choice_set.all|length}} cadeaux)</a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <h2>Aucune liste pour le moment</h2>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
