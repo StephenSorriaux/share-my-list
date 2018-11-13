@@ -12,7 +12,6 @@ EXPOSE 8000
 WORKDIR /usr/app
 COPY requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt
-copy static ./static
 COPY lists ./lists
 COPY xmas_list ./xmas_list
 COPY manage.py ./manage.py

@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import List, Choice, Person
 from django.contrib.auth import logout
+from .utils import isfloat
 
 def logout_view(request):
     logout(request)
@@ -47,13 +48,17 @@ def create(request):
 
 def add(request, list_id):
     list = get_object_or_404(List, pk=list_id)
-    choice = Choice.objects.create(
-        list=list,
-        article_text=request.POST['name'],
-        link_text=request.POST['link'],
-        price=request.POST['price']
-    )
-    return HttpResponseRedirect(reverse('lists:detail', args=(list.id,)))
+    if request.POST['name'] is not None and isfloat(request.POST['price']):
+        choice = Choice.objects.create(
+            list=list,
+            article_text=request.POST['name'],
+            link_text=request.POST['link'],
+            price=request.POST['price']
+        )
+        return HttpResponseRedirect(reverse('lists:detail', args=(list.id,)))
+    else:
+        messages.add_message(request, messages.WARNING, "Le nom du cadeau n'a pas été défini ou le prix n'est pas un chiffre")
+        return HttpResponseRedirect(reverse('lists:detail', args=(list.id,)))
 
 
 def make_available(request, list_id, choice_id):
@@ -66,6 +71,11 @@ def make_available(request, list_id, choice_id):
 def update(request, list_id):
     list = get_object_or_404(List, pk=list_id)
     person = get_object_or_404(Person, pk=request.user.id)
+
+    if list.owner.id == request.user.id:
+        messages.add_message(request, messages.WARNING, "Vous ne pouvez pas marquer un cadeau comme pris.")
+        return HttpResponseRedirect(reverse('lists:detail', args=(list.id,)))
+    
     try:
         selected_choice = list.choice_set.get(pk=request.POST['choice'])
     except (KeyError, Choice.DoesNotExist):
@@ -78,7 +88,4 @@ def update(request, list_id):
         selected_choice.is_bought = True
         selected_choice.is_bought_by = person
         selected_choice.save()
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
         return HttpResponseRedirect(reverse('lists:detail', args=(list.id,)))

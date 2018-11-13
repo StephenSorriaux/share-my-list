@@ -1,0 +1,18 @@
+---
+- hosts: all
+  become: true
+  tasks:
+  - name: Create app container
+    docker_container:
+      name: "{{ item.name }}"
+      image: "{{ image_name }}"
+      published_ports:
+        - "127.0.0.1:{{ item.port}}:8000"
+      volumes: "{{ item.volumes }}"
+      env:
+        ADMIN_USERNAME: "{{ lookup('env', item.name + '_ADMIN_USERNAME') }}"
+        ADMIN_EMAIL: "test@test.fr"
+        ADMIN_PASSWORD: "{{ lookup('env', item.name + '_ADMIN_PASSWORD') }}"
+        ALLOWED_HOSTS: "*"
+        DEBUG: True
+    with_items: "{{ docker_apps }}"

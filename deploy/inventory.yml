@@ -1,0 +1,15 @@
+---
+all:
+  hosts:
+    vps175700.ovh.net:
+      ansible_user: root
+  vars:
+    docker_apps:
+      - name: stephen_noel
+        port: 18000
+        volumes: 
+          - '/root/noel:/usr/app/db'
+      - name: tiphany_noel
+        port: 18001
+        volumes: 
+          - '/root/icard_noel:/usr/app/db'
